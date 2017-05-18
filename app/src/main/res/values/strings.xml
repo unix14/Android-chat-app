@@ -1,0 +1,57 @@
+<resources>
+    <string name="app_name">seekRet</string>
+    <string name="title_home">Students List</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+    <string-array name="titles">
+        <item>Snoop</item>
+        <item>Dogg</item>
+        <item>Eyal</item>
+        <item>Wiz</item>
+
+    </string-array>
+
+    <string-array name="description">
+        <item>420</item>
+        <item>69</item>
+        <item>312459415</item>
+        <item>420420420</item>
+
+    </string-array>
+
+    <string-array name="dates">
+        <item>04/20/420"</item>
+        <item>18/04/1978</item>
+        <item>10/05/2017</item>
+        <item>16/04/1632</item>
+
+    </string-array>
+
+    <string-array name="times">
+        <item>04:20</item>
+        <item>12:04</item>
+        <item>07:37</item>
+        <item>16:20</item>
+
+    </string-array>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="CONFIRM">Are you sure?</string>
+    <string name="YES">Yes</string>
+    <string name="NO">No</string>
+    <string name="ERROR">Something went wrong</string>
+    <string name="NO_IMAGE_SELECTED">You haven\'t picked Image</string>
+    <string name="EDIT_STUDENT">Edit Student</string>
+    <string name="STUDENT_EXIST_IN_LIST">exist</string>
+    <string name="OPERATION_SUCCESS">Operation was completed successfully</string>
+    <string name="OK">OK</string>
+    <string name="STUDENT_BDAY_REQUIRED">Student\'s birthday is required</string>
+    <string name="STUDENT_NAME_REQUIRED">Student name is required</string>
+    <string name="ON_START_MESSAGE">Long click on a Student in order to delete</string>
+    <string name="DELETE_STUDENT">Delete Student?</string>
+    <string name="STUDENT_DELETED">Student Deleted</string>
+    <string name="SHOW_STUDENT_DETAILS">show</string>
+
+</resources>
