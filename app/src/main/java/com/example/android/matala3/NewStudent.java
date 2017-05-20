@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -15,6 +16,12 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -42,7 +49,7 @@ public class NewStudent extends AppCompatActivity {
     MyTimePicker datePicker;
 
     int fileCount=0;
-//    String fileName;
+    String fileName;
 
     Random rand = new Random();
     Bitmap selectedImage;
@@ -54,6 +61,10 @@ public class NewStudent extends AppCompatActivity {
     private int result = Activity.RESULT_OK;
 
     int [] randImages = {R.drawable.a,R.drawable.b,R.drawable.c,R.drawable.d};
+
+    //firebase
+    private StorageReference storageRef;
+    private FirebaseStorage storage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +101,6 @@ public class NewStudent extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 fileCount++;
-//                fileName= fileCount+".png";
 
                 int i = rand.nextInt(3)+1;
                 int img = randImages[i];
@@ -102,28 +112,31 @@ public class NewStudent extends AppCompatActivity {
 
                 }else if(datePicker.getText().toString().equals("")){
                     Toast.makeText(getApplicationContext(), R.string.STUDENT_BDAY_REQUIRED, Toast.LENGTH_SHORT).show();
-
                 }else{
-                    conData.putString("name", name.getText().toString());
-                    if(line.getText().toString().equals("")){
-                        Random rand = new Random();
-                        conData.putString("id", fileCount+rand.nextInt(419) +"");
-                    }else{
-                        conData.putString("id", line.getText().toString());
-                    }
-                    conData.putString("date",datePicker.getText().toString());
-                    conData.putString("time",timePicker.getText().toString());
-                    conData.putBoolean("bool", cb.isChecked());
-                    conData.putInt("img",img);
+                        conData.putString("name", name.getText().toString());
+                        if(line.getText().toString().equals("")){
+                            Random rand = new Random();
+                            conData.putString("id", fileCount+rand.nextInt(419) +"");
+                        }else{
+                            conData.putString("id", line.getText().toString());
+                        }
+                        conData.putString("date",datePicker.getText().toString());
+                        if(timePicker.getText().toString().equals("")) {
+                            conData.putString("time","00:00");
+                        }else{
+                            conData.putString("time",timePicker.getText().toString());
+                        }
+                        conData.putBoolean("bool", cb.isChecked());
+                        conData.putString("img","images/" + fileName);
+//                        conData.putInt("img",img);
 
-                    resultIntent.putExtras(conData);
-                    resultIntent.putExtra("bitmap",selectedImage);
+                        resultIntent.putExtras(conData);
+                        resultIntent.putExtra("bitmap",selectedImage);
 
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-                    builder.setMessage(R.string.OPERATION_SUCCESS).setPositiveButton(R.string.OK, operationSuccessClickListener).show();
 
-
+                        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                        builder.setMessage(R.string.OPERATION_SUCCESS).setPositiveButton(R.string.OK, operationSuccessClickListener).show();
                 }
 
             }
@@ -268,7 +281,6 @@ public class NewStudent extends AppCompatActivity {
                     //OK button clicked
                     endActivity();
                     break;
-
             }
         }
     };
@@ -279,16 +291,12 @@ public class NewStudent extends AppCompatActivity {
             switch (which){
                 case DialogInterface.BUTTON_POSITIVE:
                     //Yes button clicked
-
                     Bundle conData = new Bundle();
 
                     int pos = getIntent().getIntExtra("pos",0);
                     conData.putInt("pos",pos);
                     conData.putString("title",name.getText().toString());
                     result = DELETE_STUDENT;
-
-//                    resultIntent = new Intent();
-//                    resultIntent.putExtras(conData);
 
                     endActivity();
                     break;
@@ -300,6 +308,21 @@ public class NewStudent extends AppCompatActivity {
         }
     };
 
+    public void uploadImage(Uri uri){
+        storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReference();
+
+        StorageReference fileImagesRef = storageRef.child("images/" + fileName);
+
+        fileImagesRef.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                @SuppressWarnings("VisibleForTests")
+                Uri downloadUrl = taskSnapshot.getDownloadUrl();
+
+            }
+        });
+    }
     @Override
     protected void onActivityResult(int reqCode, int resultCode, Intent data) {
         super.onActivityResult(reqCode, resultCode, data);
@@ -307,6 +330,10 @@ public class NewStudent extends AppCompatActivity {
             try {
                 final Uri imageUri = data.getData();
                 final InputStream imageStream = getContentResolver().openInputStream(imageUri);
+
+                fileName= fileCount+".jpg";
+                uploadImage(imageUri);      //dont work
+
                 selectedImage = BitmapFactory.decodeStream(imageStream);
                 image.setImageBitmap(selectedImage);
             } catch (FileNotFoundException e) {

@@ -1,16 +1,12 @@
 package com.example.android.matala3;
 
-import android.util.Log;
-
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by eyal on 18-May-17.
@@ -18,29 +14,19 @@ import java.util.List;
 
 public class Model {
 
-    private static final String TAG = "MODEL";
+//    private static final String TAG = "MODEL";
 
     FirebaseDatabase database;
     DatabaseReference myRef;
     ArrayList<Student> studentList;
 
-    int image = R.drawable.c;
+//    int image = R.drawable.c;
 
     void initialize(){
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("students");
-//        myRef.setValue("Hello, World!");
-
-//        myRef.setValue();
-//        myRef.child("1").setValue(new Student("A11","B11",image,true));
-//        addStudent(new Student("A423","B413",image,true));
-//        DatabaseReference newRef = myRef.child("title");
-//        String s = newRef.getKey();
-//        newRef.setValue(new Student(s+"1",s+"2",image,false));
-
 
         studentList = new ArrayList<>();
-
 
         myRef.addChildEventListener(new ChildEventListener() {
             @Override
@@ -78,28 +64,6 @@ public class Model {
 
             }
         });
-//        studentList = getStudents();
-
-
-//        Student s = getStudents();
-
-
-//        myRef.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-//                String value = dataSnapshot.getValue(String.class);
-//                Log.d(TAG, "Value is: " + value);
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError error) {
-//                // Failed to read value
-//                Log.w(TAG, "Failed to read value.", error.toException());
-//            }
-//        });
     }
 
 

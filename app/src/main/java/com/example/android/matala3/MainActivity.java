@@ -42,16 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
     ListView list;
 
-    ArrayList<String> title;
-    ArrayList<String> descriptions;
-    ArrayList<String> dates;
-    ArrayList<String> times;
-    ArrayList<Boolean> checkBoxes;
-    ArrayList<Integer> imgs;
-//    ArrayList<Bitmap> bitmaps;
-
     MyAdapter adapter;
-    int studentListCount = 4;
+    int studentListCount;
 
     private static final int SECOND_ACTIVITY_RESULT_CODE = 0;
     private static final int editExist=4201;
@@ -107,15 +99,11 @@ public class MainActivity extends AppCompatActivity {
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
-//        getActionBar().setDisplayHomeAsUpEnabled(false);
-
-
         list = (ListView) findViewById(R.id.list);
 
         list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-//                editStudent(i);
                 AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setMessage(R.string.DELETE_STUDENT).setPositiveButton(R.string.YES, dialogClickListener)
                         .setNegativeButton(R.string.NO, dialogClickListener).show();
@@ -159,7 +147,8 @@ public class MainActivity extends AppCompatActivity {
         studentListCount++;
         String a = res.getString("name");
         String b = res.getString("id");
-        int c = res.getInt("img");
+//        int c = res.getInt("img");
+        String c = res.getString("img");
         Boolean d = res.getBoolean("bool");
         String e = res.getString("date");
         String f = res.getString("time");
@@ -244,11 +233,9 @@ public class MainActivity extends AppCompatActivity {
     class MyAdapter extends ArrayAdapter<String>{
         Context context;
 
-
         MyAdapter(Context c,ArrayList<Student> studentList){
             super(c,R.layout.row,R.id.text1,(List)studentList);
             this.context = c;
-//            this.students = studentList;
         }
 
 
@@ -260,10 +247,8 @@ public class MainActivity extends AppCompatActivity {
             row.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-//                    Toast.makeText(getApplicationContext(),"getDetails("+position+");",Toast.LENGTH_LONG).show();
                     editStudent(position);
 //                    showStudentDetails(position);
-
                 }
             });
             ImageView myImage = (ImageView) row.findViewById(R.id.icon);
@@ -337,21 +322,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
         model = new Model();
         model.initialize();
+
+        students = model.getStudents();
+        studentListCount =students.size();
+
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        showList();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         showList();
-
     }
 
     @Override
