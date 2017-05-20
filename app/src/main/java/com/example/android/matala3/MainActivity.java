@@ -33,6 +33,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -55,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     //firebase
     Model model;
     ArrayList<Student> students;
+    private StorageReference mStorageRef;
 
 //private void openFragment(){
 //    StudentDetailsFragment nextFrag= new StudentDetailsFragment();
@@ -280,6 +289,32 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        public void getImage(String fileName){
+            File localFile = null;
+            try {
+                mStorageRef = FirebaseStorage.getInstance().getReference();
+                StorageReference fileRef = mStorageRef.child("images/"+fileName);
+
+                localFile = File.createTempFile("images", "jpg");
+
+                fileRef.getFile(localFile)
+                        .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                                // Successfully downloaded data to local file
+                                // ...
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        // Handle failed download
+                        // ...
+                    }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     /**
      * Method to extract the user's age from the entered Date of Birth.
      *
