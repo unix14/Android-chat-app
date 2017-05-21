@@ -8,10 +8,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
@@ -33,6 +37,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.internal.zzc;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FileDownloadTask;
@@ -41,9 +46,15 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -64,6 +75,10 @@ public class MainActivity extends AppCompatActivity {
     Model model;
     ArrayList<Student> students;
     private StorageReference mStorageRef;
+    ArrayList<Bitmap> tempImages;
+
+    ArrayList<ImageView> icons;
+
 
 //private void openFragment(){
 //    StudentDetailsFragment nextFrag= new StudentDetailsFragment();
@@ -90,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                    return true;
                 case R.id.navigation_notifications:
-                    hideList();
+//                    hideList();
                     showAddStudent();
                     return true;
             }
@@ -106,9 +121,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
+
+//        Menu m = (Menu) findViewById(R.id.edit_item);
+//        MenuInflater mf = new MenuInflater(this);
+//        mf.inflate(R.menu.main,m);
+
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         list = (ListView) findViewById(R.id.list);
+        tempImages = new ArrayList<>();
+        icons = new ArrayList<>();
+
+        model = new Model();
+        model.initialize();
+
+        students = model.getStudents();
+        studentListCount =students.size();
+
 
         list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -117,6 +146,8 @@ public class MainActivity extends AppCompatActivity {
                 builder.setMessage(R.string.DELETE_STUDENT).setPositiveButton(R.string.YES, dialogClickListener)
                         .setNegativeButton(R.string.NO, dialogClickListener).show();
                 selectedItemFromList = i;
+
+
                 return false;
 
             }
@@ -145,11 +176,7 @@ public class MainActivity extends AppCompatActivity {
         adapter = new MyAdapter(this,students);
 
         list.setAdapter(adapter);
-        list.setVisibility(View.VISIBLE);
-    }
-
-    public void hideList(){
-        list.setVisibility(View.INVISIBLE);
+//        adapter.runThread();
     }
 
     public void addStudent(Bundle res){
@@ -247,6 +274,9 @@ public class MainActivity extends AppCompatActivity {
             this.context = c;
         }
 
+        public void runThread(){
+            thread.start();
+        }
 
         @Override
         public View getView(final int position, View convertView, ViewGroup parent){
@@ -265,12 +295,23 @@ public class MainActivity extends AppCompatActivity {
             TextView myDesc = (TextView) row.findViewById(R.id.text2);
             CheckBox myCheckBox = (CheckBox) row.findViewById(R.id.checkBox);
 
+//            SimpleDateFormat sd = new SimpleDateFormat("dd/mm/yyyy");
+//            Date currentDate = null;
+//            try {
+//                currentDate = sd.parse(students.get(position).date);
+//            } catch (ParseException e) {
+//                e.printStackTrace();
+//            }
+////            currentDate.getDay();
+//            int day = currentDate.getDay();
+//            int month = currentDate.getMonth();
+//            int year = currentDate.getYear();
 
-            StringBuilder sb = new StringBuilder(students.get(position).date);
+            String[] dateFormat= students.get(position).date.split("/");
 
-            int day =  Integer.parseInt(sb.substring(0,2).replace("/",""));
-            int month =  Integer.parseInt(sb.substring(3,4).replace("/",""));
-            int year = Integer.parseInt(sb.substring(5).replace("/",""));
+            int day = Integer.parseInt(dateFormat[0]);
+            int month = Integer.parseInt(dateFormat[1]);
+            int year = Integer.parseInt(dateFormat[2]);
 
             int studentAge = Integer.parseInt(getAge(year,month,day));
 
@@ -280,40 +321,74 @@ public class MainActivity extends AppCompatActivity {
                 myTitle.setText(students.get(position).title);
             }
 
+
+////            downloadImageToCache(students.get(position).imageString);
+//            if(!tempImages.isEmpty()){
+//                myImage.setImageBitmap(tempImages.get(position));
+//            }
+//            icons.add(myImage);
+
             myImage.setImageResource(students.get(position).image);
-//                myImage.setImageResource(imgs.get(position));
-////                myImage.setImageBitmap(bitmaps.get(position-4));
             myDesc.setText(students.get(position).description);
             myCheckBox.setChecked(students.get(position).checkBox);
             return row;
 
         }
+        Handler handler = new Handler();
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while(true) {
+                        sleep(1000);
+                        handler.post(this);
+                        for (Student student:students) {
+                            downloadImageToCache(student.imageString);
 
-        public void getImage(String fileName){
+//                icon.setImageBitmap(tempImages.get(icon.));
+                        }
+                        for(ImageView icon:icons){
+                            icon.setImageBitmap(tempImages.get(icons.indexOf(icon)));
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+
+        public boolean downloadImageToCache(String fileName){
             File localFile = null;
+            final boolean[] ret = {false};
             try {
                 mStorageRef = FirebaseStorage.getInstance().getReference();
-                StorageReference fileRef = mStorageRef.child("images/"+fileName);
+                StorageReference fileRef = mStorageRef.child(fileName);
+
 
                 localFile = File.createTempFile("images", "jpg");
-
+                final String filePath  = localFile.getPath();
                 fileRef.getFile(localFile)
                         .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
                             @Override
                             public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                                 // Successfully downloaded data to local file
-                                // ...
+
+                                Bitmap bitmap = BitmapFactory.decodeFile(filePath);
+                                tempImages.add(bitmap);
+                                ret[0] =true;
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
                         // Handle failed download
-                        // ...
+                        Toast.makeText(getApplicationContext(), "tempImages "+tempImages.size(), Toast.LENGTH_SHORT).show();
                     }
                 });
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            return ret[0];
         }
     /**
      * Method to extract the user's age from the entered Date of Birth.
@@ -353,17 +428,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     @Override
     protected void onStart() {
         super.onStart();
-
-        model = new Model();
-        model.initialize();
-
-        students = model.getStudents();
-        studentListCount =students.size();
-
     }
 
     @Override
@@ -380,13 +447,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        hideList();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
     }
-
-
 }

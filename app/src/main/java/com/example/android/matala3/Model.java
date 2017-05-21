@@ -5,8 +5,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by eyal on 18-May-17.
@@ -27,6 +29,20 @@ public class Model {
         myRef = database.getReference("students");
 
         studentList = new ArrayList<>();
+
+
+//        myRef.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot dataSnapshot) {
+//                List<Student> std  = (ArrayList<Student>) dataSnapshot.getValue();
+//                studentList = (ArrayList<Student>) std;
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
 
         myRef.addChildEventListener(new ChildEventListener() {
             @Override

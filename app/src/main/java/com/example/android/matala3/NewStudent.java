@@ -2,6 +2,7 @@ package com.example.android.matala3;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -69,6 +71,8 @@ public class NewStudent extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        fileName= "userImage_"+rand.nextInt(1024)+".jpg";
+
         setContentView(R.layout.activity_new_student);
         setTitle("Add Student");
 
@@ -97,50 +101,7 @@ public class NewStudent extends AppCompatActivity {
         });
 
 
-        save.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fileCount++;
-
-                int i = rand.nextInt(3)+1;
-                int img = randImages[i];
-
-                Bundle conData = new Bundle();
-
-                if(name.getText().toString().equals("")){
-                    Toast.makeText(getApplicationContext(), R.string.STUDENT_NAME_REQUIRED, Toast.LENGTH_SHORT).show();
-
-                }else if(datePicker.getText().toString().equals("")){
-                    Toast.makeText(getApplicationContext(), R.string.STUDENT_BDAY_REQUIRED, Toast.LENGTH_SHORT).show();
-                }else{
-                        conData.putString("name", name.getText().toString());
-                        if(line.getText().toString().equals("")){
-                            Random rand = new Random();
-                            conData.putString("id", fileCount+rand.nextInt(419) +"");
-                        }else{
-                            conData.putString("id", line.getText().toString());
-                        }
-                        conData.putString("date",datePicker.getText().toString());
-                        if(timePicker.getText().toString().equals("")) {
-                            conData.putString("time","00:00");
-                        }else{
-                            conData.putString("time",timePicker.getText().toString());
-                        }
-                        conData.putBoolean("bool", cb.isChecked());
-                        conData.putString("img","images/" + fileName);
-//                        conData.putInt("img",img);
-
-                        resultIntent.putExtras(conData);
-                        resultIntent.putExtra("bitmap",selectedImage);
-
-
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-                        builder.setMessage(R.string.OPERATION_SUCCESS).setPositiveButton(R.string.OK, operationSuccessClickListener).show();
-                }
-
-            }
-        });
+        save.setOnClickListener(saveButtonDefaultAction);
         delete.setVisibility(View.INVISIBLE);
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,6 +128,53 @@ public class NewStudent extends AppCompatActivity {
             studentDetails();
         }
     }
+
+    View.OnClickListener saveButtonDefaultAction= new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+//            fileCount++;
+
+            int i = rand.nextInt(3)+1;
+            int img = randImages[i];
+
+            Bundle conData = new Bundle();
+
+            if(name.getText().toString().equals("")){
+                Toast.makeText(getApplicationContext(), R.string.STUDENT_NAME_REQUIRED, Toast.LENGTH_SHORT).show();
+
+            }else if(datePicker.getText().toString().equals("")){
+                Toast.makeText(getApplicationContext(), R.string.STUDENT_BDAY_REQUIRED, Toast.LENGTH_SHORT).show();
+            }else{
+                conData.putString("name", name.getText().toString());
+                if(line.getText().toString().equals("")){
+                    Random rand = new Random();
+                    conData.putString("id", fileCount+rand.nextInt(419) +"");
+                }else{
+                    conData.putString("id", line.getText().toString());
+                }
+                conData.putString("date",datePicker.getText().toString());
+                if(timePicker.getText().toString().equals("")) {
+                    conData.putString("time","00:00");
+                }else{
+                    conData.putString("time",timePicker.getText().toString());
+                }
+                conData.putBoolean("bool", cb.isChecked());
+                conData.putString("img","images/" + fileName);
+//                        conData.putInt("img",img);
+
+                resultIntent.putExtras(conData);
+                resultIntent.putExtra("bitmap",selectedImage);
+
+
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                builder.setMessage(R.string.OPERATION_SUCCESS).setPositiveButton(R.string.OK, operationSuccessClickListener).show();
+            }
+
+        }
+    };
+
+
     public void editStudent(){
         setTitle(getString(R.string.EDIT_STUDENT));
 
@@ -312,6 +320,11 @@ public class NewStudent extends AppCompatActivity {
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference();
 
+        //displaying a progress dialog while upload is going on
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Uploading");
+        progressDialog.show();
+
         StorageReference fileImagesRef = storageRef.child("images/" + fileName);
 
         fileImagesRef.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -319,7 +332,35 @@ public class NewStudent extends AppCompatActivity {
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                 @SuppressWarnings("VisibleForTests")
                 Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                //if the upload is successfull
+                //hiding the progress dialog
+                progressDialog.dismiss();
 
+                //and displaying a success toast
+                Toast.makeText(getApplicationContext(), "File Uploaded", Toast.LENGTH_LONG).show();
+                result = Activity.RESULT_OK;
+//                endActivity();
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                //if the upload is not successfull
+                //hiding the progress dialog
+                progressDialog.dismiss();
+
+                //and displaying error message
+                Toast.makeText(getApplicationContext(), exception.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                @SuppressWarnings("VisibleForTests")
+                //calculating progress percentage
+                double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+
+                //displaying percentage in progress dialog
+                progressDialog.setMessage("Uploading " + ((int) progress) + "%...");
             }
         });
     }
@@ -331,17 +372,18 @@ public class NewStudent extends AppCompatActivity {
                 final Uri imageUri = data.getData();
                 final InputStream imageStream = getContentResolver().openInputStream(imageUri);
 
-                fileName= fileCount+".jpg";
-                uploadImage(imageUri);      //dont work
+//                uploadImage(imageUri);
 
                 selectedImage = BitmapFactory.decodeStream(imageStream);
                 image.setImageBitmap(selectedImage);
+                save.setOnClickListener(saveButtonDefaultAction);
+
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 Toast.makeText(this, R.string.ERROR, Toast.LENGTH_LONG).show();
             }
 
-        }else {
+        }else{
             Toast.makeText(this, R.string.NO_IMAGE_SELECTED,Toast.LENGTH_LONG).show();
         }
     }
