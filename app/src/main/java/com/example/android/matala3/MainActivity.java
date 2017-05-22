@@ -177,13 +177,27 @@ public class MainActivity extends AppCompatActivity {
 
         list.setAdapter(adapter);
 //        adapter.runThread();
+
+        for (Student student:students) {
+            if(student.imageString!=null){
+                adapter.downloadImageToCache(student.imageString);
+                int index = students.indexOf(student);
+                if(icons.size()<=index && !icons.isEmpty() &&
+                        tempImages.size()<=index && tempImages.isEmpty()){
+
+                    icons.get(index).setImageBitmap(tempImages.get(index));
+                }
+
+            }
+
+        }
     }
 
     public void addStudent(Bundle res){
         studentListCount++;
         String a = res.getString("name");
         String b = res.getString("id");
-//        int c = res.getInt("img");
+//        int c = res.getInt("image");
         String c = res.getString("img");
         Boolean d = res.getBoolean("bool");
         String e = res.getString("date");
@@ -307,26 +321,22 @@ public class MainActivity extends AppCompatActivity {
 //            int month = currentDate.getMonth();
 //            int year = currentDate.getYear();
 
-            String[] dateFormat= students.get(position).date.split("/");
+            String[] dateFormat= students.get(position).date.split(getString(R.string.DATE_LIMITER));
 
             int day = Integer.parseInt(dateFormat[0]);
             int month = Integer.parseInt(dateFormat[1]);
             int year = Integer.parseInt(dateFormat[2]);
 
-            int studentAge = Integer.parseInt(getAge(year,month,day));
+//            int studentAge = Integer.parseInt(getAge(year,month,day));
 
-            if(studentAge>0){
-                myTitle.setText(students.get(position).title+", "+studentAge);
-            }else{
-                myTitle.setText(students.get(position).title);
-            }
+            myTitle.setText(students.get(position).title+getAge(year,month,day));
 
-
-////            downloadImageToCache(students.get(position).imageString);
-//            if(!tempImages.isEmpty()){
+            downloadImageToCache(students.get(position).imageString);
+//            if(!tempImages.isEmpty() && tempImages.size()<=position){
 //                myImage.setImageBitmap(tempImages.get(position));
 //            }
-//            icons.add(myImage);
+            if(!icons.contains(myImage))
+                icons.add(myImage);
 
             myImage.setImageResource(students.get(position).image);
             myDesc.setText(students.get(position).description);
@@ -358,15 +368,14 @@ public class MainActivity extends AppCompatActivity {
         };
 
 
-        public boolean downloadImageToCache(String fileName){
+        public void downloadImageToCache(String fileName){
             File localFile = null;
-            final boolean[] ret = {false};
             try {
                 mStorageRef = FirebaseStorage.getInstance().getReference();
                 StorageReference fileRef = mStorageRef.child(fileName);
 
 
-                localFile = File.createTempFile("images", "jpg");
+                localFile = File.createTempFile(getString(R.string.LOCAL_CACHE_FILE_PREFIX), getString(R.string.LOCAL_CACHE_FILE_SUFFIX));
                 final String filePath  = localFile.getPath();
                 fileRef.getFile(localFile)
                         .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
@@ -376,19 +385,17 @@ public class MainActivity extends AppCompatActivity {
 
                                 Bitmap bitmap = BitmapFactory.decodeFile(filePath);
                                 tempImages.add(bitmap);
-                                ret[0] =true;
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception exception) {
                         // Handle failed download
-                        Toast.makeText(getApplicationContext(), "tempImages "+tempImages.size(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(),getString(R.string.FIREBASE_DOWNLOAD_FAILURE_MSG) + exception.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return ret[0];
         }
     /**
      * Method to extract the user's age from the entered Date of Birth.
@@ -410,8 +417,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             Integer ageInt = new Integer(age);
-            String ageS = ageInt.toString();
+            String ageS;
 
+            if(ageInt >0){
+                ageS =  ", " +ageInt.toString();
+            }else
+                ageS = "";
             return ageS;
         }
         public Bundle getIntentData(int position){

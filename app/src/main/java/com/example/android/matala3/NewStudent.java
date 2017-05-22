@@ -71,10 +71,10 @@ public class NewStudent extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        fileName= "userImage_"+rand.nextInt(1024)+".jpg";
+        fileName= getString(R.string.FIREBASE_IMAGE_FILE_PREFIX)+rand.nextInt(1024)+"."+getString(R.string.LOCAL_CACHE_FILE_SUFFIX);
 
         setContentView(R.layout.activity_new_student);
-        setTitle("Add Student");
+        setTitle(getString(R.string.ADD_STUDENT));
 
         cancel = (Button) findViewById(R.id.button);
         save = (Button) findViewById(R.id.button2);
@@ -160,7 +160,7 @@ public class NewStudent extends AppCompatActivity {
                 }
                 conData.putBoolean("bool", cb.isChecked());
                 conData.putString("img","images/" + fileName);
-//                        conData.putInt("img",img);
+                        conData.putInt("image",img);
 
                 resultIntent.putExtras(conData);
                 resultIntent.putExtra("bitmap",selectedImage);
@@ -322,10 +322,10 @@ public class NewStudent extends AppCompatActivity {
 
         //displaying a progress dialog while upload is going on
         final ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Uploading");
+        progressDialog.setTitle(getString(R.string.UPLOADING));
         progressDialog.show();
 
-        StorageReference fileImagesRef = storageRef.child("images/" + fileName);
+        StorageReference fileImagesRef = storageRef.child(getString(R.string.LOCAL_CACHE_FILE_PREFIX)+"/" + fileName);
 
         fileImagesRef.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override

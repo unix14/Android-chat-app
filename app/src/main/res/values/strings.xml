@@ -3,40 +3,6 @@
     <string name="title_home">Students List</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
-
-    <string-array name="titles">
-        <item>Snoop</item>
-        <item>Dogg</item>
-        <item>Eyal</item>
-        <item>Wiz</item>
-
-    </string-array>
-
-    <string-array name="description">
-        <item>420</item>
-        <item>69</item>
-        <item>312459415</item>
-        <item>420420420</item>
-
-    </string-array>
-
-    <string-array name="dates">
-        <item>04/20/420"</item>
-        <item>18/04/1978</item>
-        <item>10/05/2017</item>
-        <item>16/04/1632</item>
-
-    </string-array>
-
-    <string-array name="times">
-        <item>04:20</item>
-        <item>12:04</item>
-        <item>07:37</item>
-        <item>16:20</item>
-
-    </string-array>
-
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="CONFIRM">Are you sure?</string>
     <string name="YES">Yes</string>
@@ -53,5 +19,12 @@
     <string name="DELETE_STUDENT">Delete Student?</string>
     <string name="STUDENT_DELETED">Student Deleted</string>
     <string name="SHOW_STUDENT_DETAILS">show</string>
+    <string name="DATE_LIMITER">/</string>
+    <string name="FIREBASE_DOWNLOAD_FAILURE_MSG">Failed downloading image from Firebase Storage:</string>
+    <string name="LOCAL_CACHE_FILE_PREFIX">images</string>
+    <string name="LOCAL_CACHE_FILE_SUFFIX">jpg</string>
+    <string name="FIREBASE_IMAGE_FILE_PREFIX">userImage_</string>
+    <string name="ADD_STUDENT">Add Student</string>
+    <string name="UPLOADING">Uploading</string>
 
 </resources>
